@@ -19,6 +19,7 @@ This project uses client-server architecture
 ## Features
 
 ## Project Structure
+```
 CMPT371_A3_MinesweeperRace/
 │
 ├── config.py
@@ -34,6 +35,7 @@ CMPT371_A3_MinesweeperRace/
 └── game/
     └── minesweeper.py
     └── __init__.py 
+```
 
 ## Requirements 
 This project uses Python 3
@@ -51,16 +53,16 @@ Run everything from the project root folder
 ### How to Run the Server
 Open a terminal in the project root and run: 
 
-`code` python server/server.py
+`python server/server.py` 
 
 ### How to Run Client 1 (Player 1)
 In a second terminal run
-`code` python client/client.py
+`python client/client.py` 
 Enter your username when asked.
 
 ### How to Run Client 2 (Player 2)
 In a third terminal run
-`code` python client/client.py
+`python client/client.py` 
 Enter your username when asked.
 
 Once both players have connected, the game will begin automatically. 
@@ -73,9 +75,9 @@ Each client has:
 - record of previous results
 
 To make a move type input :
-`code` row col 
+`row col`  
 Example: 
-`code` 3 5 
+`3 5 ` 
 which would reveal the cell at row 3 column 5
 
 ### Board Symbols 
