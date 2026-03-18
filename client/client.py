@@ -10,19 +10,41 @@ def print_visible_board(board):
     rows = len(board)
     cols = len(board[0])
 
-    #columns 
-    print(" " + " ".join(str(col)for col in range(cols)))
+    print("  " + " ".join(str(col) for col in range(cols)))
 
-    #rows 
     for row_index in range(rows):
-        row_string = " ".join(board[row_index])
+        row_string = " ".join(str(cell) for cell in board[row_index])
         print(f"{row_index} {row_string}")
 
+def render_game_view(visible_board, your_progress, opponent_progress, last_result_message):
+    if last_result_message:
+        print(last_result_message)
+    print(f"Your progress: {your_progress} safe cells")
+    print(f"Opponent progress:{opponent_progress} safe cells")
+    print()
+
+    if visible_board is not None:
+        print_visible_board(visible_board)
+    
+    print()
+    print("Enter move as: row   col  ")
+
+'''
 def prompt_for_move():
     row_text = input("Enter row: ").strip()
     col_text = input("Enter Column: ").strip()
     return row_text, col_text
+'''
 
+def prompt_for_move():
+    move_text = input("> ").strip()
+    parts = move_text.split()
+
+    if len(parts) != 2:
+        return None, None
+    return parts[0], parts[1]
+
+"""   
 def get_valid_move():
     while True:
         row_text, col_text = prompt_for_move()
@@ -33,7 +55,25 @@ def get_valid_move():
             return row, col
         except ValueError:
             print("Invalid Input. Input must be integers!")
-    
+"""
+
+def get_valid_move():
+    while True:
+        row_text, col_text = prompt_for_move()
+
+        if row_text is None or col_text is None:
+            print("Invalid input. Enter move as: row   col  ")
+            continue
+        try:
+            row = int(row_text)
+            col = int(col_text)
+            return row, col 
+        except ValueError:
+            print("Invalid input. Enter integers like: 3 5 ")
+
+
+
+
 def start_client():
     print ("client start")
 
@@ -66,6 +106,10 @@ def start_client():
         game_over = False
         waiting_for_move = False
 
+        your_progress = 0
+        opponent_progress = 0
+        last_result_message = ""
+
         #communicate with the server
         while not game_over:
             line = client_reader.readline()
@@ -87,11 +131,19 @@ def start_client():
                 visible_board = create_visible_board(rows,cols)
                 game_started = True
                 waiting_for_move = False
+                last_result_message = f"Game started! Board size {rows} x {cols}. Mines: {mine_count}"
 
-                print("Game Started!")
-                print(f"Board Size {rows} X {cols}")
-                print(f"Mines {mine_count}")
-                print_visible_board(visible_board)
+
+                render_game_view(
+                    visible_board, 
+                    your_progress, 
+                    opponent_progress, 
+                    last_result_message
+                )
+                #print("Game Started!")
+                #print(f"Board Size {rows} X {cols}")
+                #print(f"Mines {mine_count}")
+                #print_visible_board(visible_board)
                 while not game_over:
                     row, col = get_valid_move()
 
@@ -123,9 +175,14 @@ def start_client():
                                 return
 
                             visible_board[result_row][result_col] = value
+                            last_result_message = f"Safe reveal at ({result_row}, {result_col}): {value} adjacent mines"
 
-                            print("safe reveal result received")
-                            print_visible_board(visible_board)
+                            render_game_view(
+                                visible_board, 
+                                your_progress, 
+                                opponent_progress, 
+                                last_result_message
+                            )
 
 
                             move_done = True
@@ -141,30 +198,63 @@ def start_client():
                                 return
 
                             visible_board[result_row][result_col] = "*"
+                            last_result_message = f"Mine hit at ({result_row}, {result_col})"
 
-                            print("mine reveal result achieved")
-                            print_visible_board(visible_board)
+                            render_game_view(
+                                visible_board, 
+                                your_progress, 
+                                opponent_progress, 
+                                last_result_message
+                            )
 
                             #move_done = True
                             #game_over = True
 
                         elif response.startswith("ERROR"):
-                            print(response)
+                            last_result_message = response
+                            render_game_view(
+                                visible_board, 
+                                your_progress, 
+                                opponent_progress, 
+                                last_result_message
+                            )
                             move_done = True
 
                         elif response.startswith("PROGRESS YOU"):
                             parts = response.split()
-                            count = parts[2]
-                            print(f"Your safe cells revealed: {count}")
+                            #count = parts[2]
+                            your_progress = int(parts[2])
+                            
+                            render_game_view(
+                                visible_board, 
+                                your_progress, 
+                                opponent_progress, 
+                                last_result_message
+                            )
 
                         elif response.startswith("PROGRESS OPPONENT"):
                             parts = response.split()
-                            count = parts[2]
-                            print(f"Opponent safe cells revealed: {count}")
+                            #count = parts[2]
+                            opponent_progress = int(parts[2])
+                            #print(f"Opponent safe cells revealed: {opponent_progress}")
+                            render_game_view(
+                                visible_board, 
+                                your_progress, 
+                                opponent_progress, 
+                                last_result_message
+                            )
                         
                         elif response.startswith("MESSAGE "):
                             text = response[len("MESSAGE "):]
-                            print(text)
+                            last_result_message = text
+                            render_game_view(
+                                visible_board,
+                                your_progress,
+                                opponent_progress,
+                                last_result_message
+                            )
+
+
                         elif response == "OPPONENT_DISCONNECTED":
                             print("Opponent disconnected. You win by default")
                             game_over = True
