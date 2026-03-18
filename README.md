@@ -90,9 +90,11 @@ which would reveal the cell at row 3 column 5
 - both players are playing copies of the same hidden board 
 - Both players are playing at the same time there are no "turns"
 - Each player tracks progress individually 
-Player loses: 
+
+**Player loses:** 
 - if they hit a mine
-Player wins:
+
+**Player wins:**
 - if they reveal all safe cells first 
 - opponent hits mine 
 - opponent disconnects 
