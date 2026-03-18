@@ -1,35 +1,33 @@
 import random 
 
 def is_valid_cell(row, col, rows, cols):
-    #row bounds
+    #check the bounds of the input
     if row < 0 or row >= rows: 
         return False
-    #column bounds 
     if col < 0 or col >= cols: 
         return False
     return True
 
+
+#place the mines randomly on the board
 def place_mines(rows, cols, mine_count):
     mines = set()
     while len(mines) < mine_count:
-        r = random.randint(0, rows - 1)
-        c = random.randint(0, cols - 1)
-        #duplicatess
-        mines.add((r,c))
+        mine_row = random.randint(0, rows - 1)
+        mine_col = random.randint(0, cols - 1)
+        mines.add((mine_row, mine_col))
     return mines
 
+#create the board with mines and the adjacent mine numbers
 def create_board(rows, cols, mine_count):
-    #MT board 
     board = [[0 for _ in range(cols)]for _ in range(rows)]
-    #make mines
     mines = place_mines(rows, cols, mine_count)
-    #put mines on board
-    for r, c in mines: 
-        board [r][c] = -1
-    #other numbers 
+    for mine_row, mine_col in mines: 
+        board [mine_row][mine_col] = -1
     compute_adj_counts(board)
     return board
 
+#fill the non mine cells
 def compute_adj_counts(board):
     rows = len(board)
     cols = len(board[0])
@@ -39,25 +37,26 @@ def compute_adj_counts(board):
         (0,-1),          (0,1), 
         (1,-1), (1,0), (1,1)
     ]
-    for r in range(rows):
-        for c in range(cols):
+    for row in range(rows):
+        for col in range(cols):
             #mines don't count
-            if board [r][c] == -1:
+            if board [row][col] == -1:
                 continue
             mine_count = 0
-            for dr, dc in directions: 
-                nr = r + dr
-                nc = c + dc
+            for drow, dcol in directions: 
+                neighbor_row = row + drow
+                neighbor_col = col + dcol
 
-                if is_valid_cell(nr, nc, rows, cols):
-                    if board[nr][nc] == -1:
+                if is_valid_cell(neighbor_row, neighbor_col, rows, cols):
+                    if board[neighbor_row][neighbor_col] == -1:
                         mine_count += 1
-            board[r][c] = mine_count
+            board[row][col] = mine_count
 
 def is_mine(board, row, col):
-    #is it a mine???
+    #mine check
     return board[row][col] == -1
 
+#calculate the safe cells
 def count_safe_cells(board):
     safe_cells = 0
     for row in board:
@@ -74,6 +73,10 @@ def create_player_state():
     }
     return player_state
 
+#reveal one cell
+#error: already visible or input invalid 
+#mine: mine hit
+#safe: safe cell visible
 def reveal_cell(board, player_state, row, col):
     rows = len(board)
     cols = len(board[0])
@@ -82,7 +85,7 @@ def reveal_cell(board, player_state, row, col):
     if not is_valid_cell(row, col, rows, cols):
         return{
             "status": "error",
-            "message": "Invalid Move"
+            "message": "Invalid move"
         }
 
 
@@ -93,7 +96,7 @@ def reveal_cell(board, player_state, row, col):
             "message": "Cell already revealed"
         }
 
-    #is it a mine????
+    #mine check
     if board[row][col] == -1:
         player_state["revealed"].add((row,col))
         player_state["alive"] = False
@@ -116,6 +119,7 @@ def reveal_cell(board, player_state, row, col):
         "value": cell_value
     }
 
+#bounds check
 def test_reveal_cell_invalid():
     board = [
         [0, 1, -1],
@@ -130,6 +134,7 @@ def test_reveal_cell_invalid():
     print("Invalid move test:")
     print(result)
 
+#check if its already visible
 def test_reveal_cell_already_revealed():
     board = [
         [0, 1, -1],
@@ -145,6 +150,7 @@ def test_reveal_cell_already_revealed():
     print("Already revealed test:")
     print(result)
 
+#check the mine test
 def test_reveal_cell_mine():
     board = [
         [0, 1, -1],

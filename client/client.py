@@ -1,11 +1,16 @@
 import socket
+import sys
+import os 
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config import HOST, PORT
 
-HOST = "127.0.0.1"
-PORT = 5000
 
+#Initial Board
+#all values hidden
 def create_visible_board(rows,cols):
     return[["." for _ in range(cols)] for _ in range(rows)]
 
+#make the initial board pretty
 def print_visible_board(board):
     rows = len(board)
     cols = len(board[0])
@@ -16,6 +21,7 @@ def print_visible_board(board):
         row_string = " ".join(str(cell) for cell in board[row_index])
         print(f"{row_index} {row_string}")
 
+#create the actual game
 def render_game_view(visible_board, your_progress, opponent_progress, last_result_message):
     if last_result_message:
         print(last_result_message)
@@ -29,13 +35,7 @@ def render_game_view(visible_board, your_progress, opponent_progress, last_resul
     print()
     print("Enter move as: row   col  ")
 
-'''
-def prompt_for_move():
-    row_text = input("Enter row: ").strip()
-    col_text = input("Enter Column: ").strip()
-    return row_text, col_text
-'''
-
+#read input
 def prompt_for_move():
     move_text = input("> ").strip()
     parts = move_text.split()
@@ -44,19 +44,7 @@ def prompt_for_move():
         return None, None
     return parts[0], parts[1]
 
-"""   
-def get_valid_move():
-    while True:
-        row_text, col_text = prompt_for_move()
-
-        try:
-            row = int(row_text)
-            col = int(col_text)
-            return row, col
-        except ValueError:
-            print("Invalid Input. Input must be integers!")
-"""
-
+#respond to invalid moves 
 def get_valid_move():
     while True:
         row_text, col_text = prompt_for_move()
@@ -73,7 +61,7 @@ def get_valid_move():
 
 
 
-
+#start the client, connect it to the server 
 def start_client():
     print ("client start")
 
@@ -83,8 +71,6 @@ def start_client():
 
 
     try:
-        #try connecting to server
-        #server must be running for this to work
         client_socket.connect((HOST,PORT))
         print(f"hots{HOST}, PORt {PORT}")
         client_reader = client_socket.makefile("r")
@@ -140,10 +126,6 @@ def start_client():
                     opponent_progress, 
                     last_result_message
                 )
-                #print("Game Started!")
-                #print(f"Board Size {rows} X {cols}")
-                #print(f"Mines {mine_count}")
-                #print_visible_board(visible_board)
                 while not game_over:
                     row, col = get_valid_move()
 
@@ -171,7 +153,7 @@ def start_client():
                             value = parts[4]
 
                             if visible_board is None:
-                                print("error: THERE IS NO BOARD VISIBLEEEEEEEEEE")
+                                print("error: there was no visible board created")
                                 return
 
                             visible_board[result_row][result_col] = value
@@ -194,7 +176,7 @@ def start_client():
                             result_col = int(parts[3])
 
                             if visible_board is None:
-                                print("error: THERE IS NO BOARD VISIBLEEEEEEEEEE")
+                                print("error: there is no visible board")
                                 return
 
                             visible_board[result_row][result_col] = "*"
@@ -236,7 +218,7 @@ def start_client():
                             parts = response.split()
                             #count = parts[2]
                             opponent_progress = int(parts[2])
-                            #print(f"Opponent safe cells revealed: {opponent_progress}")
+
                             render_game_view(
                                 visible_board, 
                                 your_progress, 
