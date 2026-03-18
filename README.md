@@ -1,4 +1,3 @@
-## Project Title 
 # Minesweeper Race 
 
 ## Project Description 
@@ -81,9 +80,9 @@ Example:
 which would reveal the cell at row 3 column 5
 
 ### Board Symbols 
-. : hidden cell
-0-8 : safe cell, the number refers to the number of adjacent mines
-* : mine
+`.` : hidden cell
+`0-8` : safe cell, the number refers to the number of adjacent mines
+`*` : mine
 
 ### Game Rules
 - both players are playing copies of the same hidden board 
