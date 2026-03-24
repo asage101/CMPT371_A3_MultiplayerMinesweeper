@@ -174,7 +174,7 @@ All messages are newline-delimited (`\n`).
 
 ---
 
-## 7. Project Structure
+### Project Structure
 
 ```
 CMPT371_A3_MinesweeperRace/
@@ -193,3 +193,13 @@ CMPT371_A3_MinesweeperRace/
     ├── minesweeper.py
     └── __init__.py
 ```
+
+## Academic Integrity & References
+**Code Origin**
+- Code implementation was written by the group 
+- Basic socke structure was inspired by course materials 
+
+**GenAI Usage**
+- ChatGPT was used to debug socket behavior, structuring message protocol, and improving README clarity
+
+**References**
