@@ -78,6 +78,118 @@ Run:
 python server/server.py
 ```
 **Expected Output**
-```server on 127.0.0.1:5000
+```
+server on 127.0.0.1:5000
 Waiting for player1
+```
+### Step 2: Connect Player 1
+
+Open a **new terminal** (leave the server running).
+
+Run:
+
+```bash
+python client/client.py
+```
+
+Enter a username when prompted.
+
+Expected output:
+
+```
+WAITING
+```
+### Step 3: Connect Player 2
+
+Open a **third terminal**.
+
+Run:
+
+```bash
+python client/client.py
+```
+
+Enter a username.
+
+Expected output:
+
+```
+Game started!
+```
+
+---
+
+### Step 4: Gameplay
+
+Players enter moves in the format:
+
+```
+row col
+```
+
+Example:
+
+```
+3 5
+```
+
+Each move reveals a cell:
+- Safe → shows number
+- Mine → game ends
+
+The game continues until:
+- One player clears all safe cells
+- A player hits a mine
+- A disconnect occurs
+
+---
+
+## 6. Technical Protocol Details
+
+This project uses a simple line-based protocol over TCP.
+
+### Client → Server
+```
+JOIN <username>
+REVEAL <row> <col>
+```
+
+### Server → Client
+```
+WAITING
+START <rows> <cols> <mines>
+RESULT SAFE <row> <col> <value>
+RESULT MINE <row> <col>
+PROGRESS YOU <count>
+PROGRESS OPPONENT <count>
+MESSAGE <text>
+WIN
+LOSE
+TIE
+OPPONENT_DISCONNECTED
+ERROR <message>
+```
+
+All messages are newline-delimited (`\n`).
+
+---
+
+## 7. Project Structure
+
+```
+CMPT371_A3_MinesweeperRace/
+│
+├── config.py
+├── README.md
+├── requirements.txt
+│
+├── client/
+│   └── client.py
+│
+├── server/
+│   └── server.py
+│
+└── game/
+    ├── minesweeper.py
+    └── __init__.py
 ```
