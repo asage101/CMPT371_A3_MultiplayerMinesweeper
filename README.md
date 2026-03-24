@@ -1,7 +1,10 @@
 # CMPT 371 A3 Socket Programming ``` Minesweeper Race ```
 **Course:** CMPT 371 - Data Communications & Networking
+
 **Instructor:** Mirza Zaeem Baig
+
 **Semester:** Spring 2026
+
 ***RUBRIC NOTE: As per submission guidelines, only one group member will submit the link to this repository on Canvas.*** 
 
 ---
