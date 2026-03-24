@@ -1,101 +1,83 @@
-# Minesweeper Race 
+# CMPT 371 A3 Socket Programming ``` Minesweeper Race ```
+**Course:** CMPT 371 - Data Communications & Networking
+**Instructor:** Mirza Zaeem Baig
+**Semester:** Spring 2026
+***RUBRIC NOTE: As per submission guidelines, only one group member will submit the link to this repository on Canvas.*** 
 
-## Project Description 
-Minesweeper race is a 2 player socket programming game built in Python. Both players connect to the same server and play on the same Minesweeper board layout, but each player reveals cells on their own seperate client server. The players race to reveal safe cells as quickly as possible. The server tracks both players progress and determines the final outcome. 
+---
+## Group Members
+| Name | Student ID | Email |
+|------|-----------|------|
+| Alina Pharis | 301551508  | asp29@sfu.ca |
+| Tushar Singh | 301560473 | tsa156@sfu.ca |
 
-Win Conditions:
-- Revealing all safe cells first 
-- Opponent hitting a mine 
-- Opponent disconnecting 
+---
+## Project Overview
+This project is a multiplayer Minesweeper race game built using Python’s Socket API (TCP). It allows two clients to connect to a central server, receive the same hidden mine layout, and race independently to reveal all safe cells first.
 
-## Architecture 
-This project uses client-server architecture
-- the server is responsible for creating the board, accepting 2 client connections, tracking the game states, and deciding the game's outcome 
-- the clients are responsible for connecting both players to the server, sending inputs, and displaying the current board and progress for each player
-- the server uses threading to allow both players to play at the same time 
-- Both players play on the same board but each has their own: revealed cells, progress count, and "alive/dead" state
+Each player plays on their own visible board, but both share the same underlying mine configuration. The server handles all game logic, validation, and win conditions, ensuring fairness and preventing any client-side cheating.
 
-## Features
+The game ends when:
+- A player reveals all safe cells (win)
+- A player hits a mine (loss)
+- Both players hit mines (tie)
+- A player disconnects (other player wins by default)
 
-## Project Structure
+---
+## System Limitations & Edge Cases
+
+As required by the project specifications, the following limitations and edge cases were considered:
+
+### Handling Multiple Clients Concurrently
+- **Solution:** Python’s `threading` module is used. Each client is handled in a separate thread while sharing a locked match state.
+- **Limitation:** Thread-based design does not scale well for large numbers of clients. A production system would use async I/O or thread pools.
+
+### TCP Stream Buffering
+- **Solution:** TCP is a continuous stream, so messages may arrive combined or split. We solved this by using newline (`\n`) delimiters and buffering input until a full line is received.
+
+### Input Validation & Robustness
+- **Solution:** The server validates all commands strictly:
+  - Invalid commands → `ERROR Invalid command`
+  - Out-of-bounds moves → `ERROR Invalid move`
+  - Duplicate reveals → `ERROR Cell already revealed`
+- **Limitation:** The client performs light validation, but the server remains the source of truth.
+
+### Disconnect Handling
+- If a player disconnects mid-game, the opponent automatically wins.
+- If a disconnect happens during waiting, the server cleans up without crashing.
+
+### Join Timeout
+- If a second player does not connect within a fixed timeout, the first player is notified and the session closes.
+
+---
+## Video Demo
+---
+## Prerequisites (Fresh Environment)
+
+To run this project, you need:
+
+- Python 3.10 or higher
+- No external libraries required (uses standard libraries: `socket`, `threading`, `sys`, `os`)
+
+Optional:
+- VS Code or any terminal
+
+---
+
+## Step-by-Step Run Guide
+
+> **Important:** The grader should be able to copy-paste these commands.
+
+### Step 1: Start the Server
+
+Open a terminal and navigate to the project root folder.
+
+Run:
+
+```bash
+python server/server.py
 ```
-CMPT371_A3_MinesweeperRace/
-│
-├── config.py
-├── README.md
-├── requirements.txt
-│
-├── client/
-│   └── client.py
-│
-├── server/
-│   └── server.py
-│
-└── game/
-    └── minesweeper.py
-    └── __init__.py 
+**Expected Output**
+```server on 127.0.0.1:5000
+Waiting for player1
 ```
-
-## Requirements 
-This project uses Python 3
-
-### Python Standard Library Modules: 
-- socket
-- threading
-- random
-- sys
-- os
-
-
-## How to Run the Project 
-Run everything from the project root folder 
-### How to Run the Server
-Open a terminal in the project root and run: 
-
-`python server/server.py` 
-
-### How to Run Client 1 (Player 1)
-In a second terminal run
-`python client/client.py` 
-Enter your username when asked.
-
-### How to Run Client 2 (Player 2)
-In a third terminal run
-`python client/client.py` 
-Enter your username when asked.
-
-Once both players have connected, the game will begin automatically. 
-
-## How to Play 
-Each client has: 
-- the board 
-- their progress
-- their opponents progress
-- record of previous results
-
-To make a move type input :
-`row col`  
-Example: 
-`3 5 ` 
-which would reveal the cell at row 3 column 5
-
-### Board Symbols 
-`.` : hidden cell
-
-`0-8` : safe cell, the number refers to the number of adjacent mines
-
-`*` : mine
-
-### Game Rules
-- both players are playing copies of the same hidden board 
-- Both players are playing at the same time there are no "turns"
-- Each player tracks progress individually 
-
-**Player loses:** 
-- if they hit a mine
-
-**Player wins:**
-- if they reveal all safe cells first 
-- opponent hits mine 
-- opponent disconnects 
-
