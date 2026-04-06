@@ -1,5 +1,8 @@
+#Core minesweeper game logic 
+#creation of the board, placing the mines, revealing the cells, and keeping track of the player's progress
 import random 
 
+#returns true if the cell is valid (inside the defined rows and columns)
 def is_valid_cell(row, col, rows, cols):
     #check the bounds of the input
     if row < 0 or row >= rows: 
@@ -9,7 +12,8 @@ def is_valid_cell(row, col, rows, cols):
     return True
 
 
-#place the mines randomly on the board
+#place the mines randomly on the board 
+#ensures that they are all unique positions as well (no more that one mine per cell)
 def place_mines(rows, cols, mine_count):
     mines = set()
     while len(mines) < mine_count:
@@ -18,7 +22,7 @@ def place_mines(rows, cols, mine_count):
         mines.add((mine_row, mine_col))
     return mines
 
-#create the board with mines and the adjacent mine numbers
+#creates the fully hidden game board, mines = -1, all other cells are assigned numbers which share the number of adjacent mines
 def create_board(rows, cols, mine_count):
     board = [[0 for _ in range(cols)]for _ in range(rows)]
     mines = place_mines(rows, cols, mine_count)
@@ -27,11 +31,12 @@ def create_board(rows, cols, mine_count):
     compute_adj_counts(board)
     return board
 
-#fill the non mine cells
+#fill the non mine cells with the number of mines in the surrounding cells
+#requires board to be "built"
 def compute_adj_counts(board):
     rows = len(board)
     cols = len(board[0])
-
+    #defines the neighborhood 
     directions = [
         (-1,-1), (-1, 0), (-1, 1),
         (0,-1),          (0,1), 
@@ -39,14 +44,14 @@ def compute_adj_counts(board):
     ]
     for row in range(rows):
         for col in range(cols):
-            #mines don't count
+            #minee already have a value, skip
             if board [row][col] == -1:
                 continue
             mine_count = 0
             for drow, dcol in directions: 
                 neighbor_row = row + drow
                 neighbor_col = col + dcol
-
+                #the neighboorhood is only valid inside the board 
                 if is_valid_cell(neighbor_row, neighbor_col, rows, cols):
                     if board[neighbor_row][neighbor_col] == -1:
                         mine_count += 1
@@ -56,7 +61,7 @@ def is_mine(board, row, col):
     #mine check
     return board[row][col] == -1
 
-#calculate the safe cells
+#calculate the safe cells, used to check if all mines have been cleared
 def count_safe_cells(board):
     safe_cells = 0
     for row in board:
@@ -65,6 +70,7 @@ def count_safe_cells(board):
                 safe_cells += 1
     return safe_cells
 
+#creates the player state tracker, number of mines revealed, maintains if the player is alive, and tracks the safe progress 
 def create_player_state():
     player_state = { 
         "revealed": set(),
@@ -118,81 +124,3 @@ def reveal_cell(board, player_state, row, col):
         "col": col, 
         "value": cell_value
     }
-
-#bounds check
-def test_reveal_cell_invalid():
-    board = [
-        [0, 1, -1],
-        [1, 2, 1],
-        [0, 1, 0]
-    ]
-
-    player_state = create_player_state()
-
-    result = reveal_cell(board, player_state, -1, 0)
-
-    print("Invalid move test:")
-    print(result)
-
-#check if its already visible
-def test_reveal_cell_already_revealed():
-    board = [
-        [0, 1, -1],
-        [1, 2, 1],
-        [0, 1, 0]
-    ]
-
-    player_state = create_player_state()
-    player_state["revealed"].add((1, 1))
-
-    result = reveal_cell(board, player_state, 1, 1)
-
-    print("Already revealed test:")
-    print(result)
-
-#check the mine test
-def test_reveal_cell_mine():
-    board = [
-        [0, 1, -1],
-        [1, 2, 1],
-        [0, 1, 0]
-    ]
-
-    player_state = create_player_state()
-
-    result = reveal_cell(board, player_state, 0, 2)
-
-    print("Mine reveal test:")
-    print(result)
-    print("Player alive:", player_state["alive"])
-    print("Revealed cells:", player_state["revealed"])
-
-def test_reveal_cell_safe():
-    board = [
-        [0, 1, -1],
-        [1, 2, 1],
-        [0, 1, 0]
-    ]
-
-    player_state = create_player_state()
-
-    result = reveal_cell(board, player_state, 1, 1)
-
-    print("Safe reveal test:")
-    print(result)
-    print("Safe revealed count:", player_state["safe_revealed_count"])
-    print("Revealed cells:", player_state["revealed"])
-
-'''
-if __name__ == "__main__":
-    test_reveal_cell_invalid()
-    print()
-
-    test_reveal_cell_already_revealed()
-    print()
-
-    test_reveal_cell_mine()
-    print()
-
-    test_reveal_cell_safe()
-'''
