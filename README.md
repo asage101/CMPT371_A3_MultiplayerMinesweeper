@@ -178,7 +178,7 @@ OPPONENT_DISCONNECTED
 ERROR <message>
 ```
 
-All messages are newline-delimited (`\n`).
+
 
 ---
 
