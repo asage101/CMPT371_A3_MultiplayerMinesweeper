@@ -26,6 +26,15 @@ The game ends when:
 - Both players hit mines (tie)
 - A player disconnects (other player wins by default)
 
+### Configuration
+
+The project uses a `config.py` file to store all key settings, including:
+
+- Network settings (`HOST`, `PORT`)
+- Game settings (`ROWS`, `COLS`, `MINE_COUNT`)
+- Join timeout (`JOIN_TIMEOUT`)
+
+These values are imported by both the server and client, allowing the game setup to be easily modified without changing the main code. The default values are used for testing and grading.
 ---
 ## System Limitations & Edge Cases
 
@@ -90,6 +99,7 @@ python server/server.py
 server on 127.0.0.1:5000
 Waiting for player1
 ```
+> The server uses default settings defined in `config.py` (eg. port 500, number of mines, etc)
 ### Step 2: Connect Player 1
 
 Open a **new terminal** (leave the server running).
