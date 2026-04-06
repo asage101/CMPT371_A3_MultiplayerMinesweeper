@@ -1,8 +1,9 @@
+#This file implement the server required, it accepts 2 clients, manages the shared match state, and sends game results to the clients 
 import socket
 import sys
 import os
 import threading
-
+#makes sure file can access config.py and minesweeper.py to access their functions
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from game.minesweeper import create_board, count_safe_cells, create_player_state, reveal_cell
@@ -11,7 +12,7 @@ from config import HOST, PORT, ROWS, COLS, MINE_COUNT, JOIN_TIMEOUT
 
 def recv_line(client_socket):
     try:
-        #recieving message from client
+        #read incoming data from client
         data = client_socket.recv(1024)
         if not data:
             return ""
@@ -19,9 +20,8 @@ def recv_line(client_socket):
     except (ConnectionAbortedError, ConnectionResetError, OSError):
         return ""
 
-
+#sends message to client, ALL protocol messages use this helper
 def send_line(client_socket, message):
-    #send one line to client
     try:
         if not message.endswith("\n"):
             message += "\n"
@@ -30,7 +30,7 @@ def send_line(client_socket, message):
     except(ConnectionAbortedError, ConnectionResetError, OSError) as e:
         print(f"Send failed: {e}")
 
-
+#records the winner of games and how they won
 def finalize_match(match_state, winner, final_reason):
     if match_state["game_over"]:
         return
@@ -38,7 +38,7 @@ def finalize_match(match_state, winner, final_reason):
     match_state["winner"] = winner
     match_state["final_reason"] = final_reason
 
-#if one player disconnects 
+#if one player disconnects the other wins by default
 def handle_disconnect(match_state, match_lock, disconnected_player_id):
     with match_lock:
         if match_state["game_over"]:
@@ -58,9 +58,7 @@ def handle_disconnect(match_state, match_lock, disconnected_player_id):
 
         print(f"{disconnected_player['username']} disconnected. {opponent['username']} wins by default")
         
-#dealing with messageing for each player 
-#each player has a handler thread to allow independent play. 
-#lock is used to prevent any interference between the 2
+#Handles all messages from one player, each player has a seperate thread and a lock is used to protect it
 def handle_client(player_id, match_state, match_lock):
     player = match_state["players"][player_id]
     if player_id == 1:
@@ -73,10 +71,12 @@ def handle_client(player_id, match_state, match_lock):
     player_socket = player["socket"]
     username = player["username"]
 
+    #buffer used to hand TCP stream unput until new line is recieved 
     recv_buffer = ""
     print(f"Handler started for {username}")
     try:
         while True:
+            #keep reading until there is at least one full command line
             while "\n" not in recv_buffer:
                 try:
                     chunk = player_socket.recv(1024)
@@ -94,7 +94,7 @@ def handle_client(player_id, match_state, match_lock):
                 send_line(player_socket, "ERROR Invalid command")
                 print(f"Invalid command from {username}: blank line")
                 continue
-
+            #parse the command name and its arguments 
             parts = line.split()
             command = parts[0]
             args = parts[1:]
@@ -131,19 +131,19 @@ def handle_client(player_id, match_state, match_lock):
             final_status_for_opponent = None
 
             should_exit = False
-
+            #Only one client can modify a sharted match state at once, this makes sure that the players don't update the board simultaneously
             with match_lock:
                 if match_state["game_over"]:
                     print(f"{username} stopping GAME OVER")
                     break
-
+                #apply the players move using the shared hidden board and the players own state
                 result = reveal_cell(
                     match_state["board"],
                     player["state"],
                     row,
                     col
                 )
-
+                #safe reveals --> update progress, potentially ends game if all safe cells are revealed
                 if result["status"] == "safe":
                     if player["state"]["safe_revealed_count"] == match_state["safe_cell_total"]:
 
@@ -167,6 +167,7 @@ def handle_client(player_id, match_state, match_lock):
                         f"{player['username']} progress:{your_safe_count} safe cells |"
                         f"{opponent['username']} progress:{opponent_safe_count} safe cells "
                     )
+                #a mine was revealed therefore the game is ended for this player and the other player wins 
                 elif result["status"] == "mine":
                     opponent_alive = opponent["state"]["alive"]
 
@@ -179,11 +180,11 @@ def handle_client(player_id, match_state, match_lock):
                     outgoing_message = f"RESULT MINE {result['row']} {result['col']}"
                     debug_message = f"{username} revealed ({result['row']}, {result['col']}): MINE"
                     should_exit = True
-
+                #the move was invalid, but does not end the game
                 elif result["status"] == "error":
                     outgoing_message = f"ERROR {result['message']}"
                     debug_message = f"Invalid reveal from {username}: {result['message']}"
-
+                #the game has ended, this gives the correct message to the players based on how the game has ended
                 if match_state["game_over"]:
                     if match_state["final_reason"] == "cleared_safe_cells":
                         if match_state["winner"] == player_id:
@@ -223,7 +224,7 @@ def handle_client(player_id, match_state, match_lock):
                             final_message_for_opponent = "MESSAGE Opponent disconnected."
                             final_status_for_opponent = "OPPONENT_DISCONNECTED"
                     should_exit = True
-
+            #send the move result first, then progress, then match status 
             if outgoing_message is not None:
                 send_line(player_socket, outgoing_message)
 
@@ -259,8 +260,9 @@ def handle_client(player_id, match_state, match_lock):
         except OSError:
             pass
 
+#starts the server, accepts players, and starts the game, also assigns 1 thread per client. 
 def main(): 
-    #create socket 
+    #create the TCP server socket 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
@@ -269,16 +271,15 @@ def main():
 
         print(f" server on {HOST}:{PORT}")
 
-        #-----------------------------------
-        #player 1
+        #Accept and initialize player 1
         print("Waiting for player1")
         player1_socket, player1_address = server_socket.accept()
-        #print(f"player 1 is at this address{player1_address}")
-        
 
+        
+        #first player is waiting for the other one to join
         send_line(player1_socket, "WAITING")
         player1_join = recv_line(player1_socket)
-        #print(f"player 1 message{player1_join}")
+
 
         player1_parts = player1_join.split(maxsplit=1)
         if len(player1_parts) < 2 or player1_parts[0] != "JOIN" or player1_parts[1].strip() == "":
@@ -292,7 +293,7 @@ def main():
 
         player1_username = player1_parts[1].strip()
         
-        #player 1 profile
+        #store player 1 connection information and game state
         player1 = {
             "socket": player1_socket,
             "address": player1_address,
@@ -301,10 +302,10 @@ def main():
         }
 
 
-
-        #------------------------------------
-        #player 2
+        #Accept and initialize player 2
         print("waiting for player2")
+        #gives a time limit for the second player to join before the game ends by default 
+        #JOIN_TIMEOUT can be set or  changed in config.py
         server_socket.settimeout(JOIN_TIMEOUT)
         try:
             player2_socket, player2_address = server_socket.accept()
@@ -319,10 +320,10 @@ def main():
         finally:
             server_socket.settimeout(None)
 
-        #print(f"Player 2 address {player2_address}")
+
 
         player2_join = recv_line(player2_socket)
-        #print(f"player 2 message{player2_join}")
+
 
         player2_parts = player2_join.split(maxsplit=1)
         if len(player2_parts) < 2 or player2_parts[0] != "JOIN" or player2_parts[1].strip() == "":
@@ -340,7 +341,7 @@ def main():
 
         player2_username = player2_parts[1].strip()
 
-
+        #store player 2 connection information and game state
         player2 = {
             "socket": player2_socket,
             "address": player2_address,
@@ -352,10 +353,10 @@ def main():
 
 
         #------------------------------------
-        #game
+        #create the hidden board which has the layout used for both players
         board = create_board(ROWS, COLS, MINE_COUNT)
         safe_cell_total = count_safe_cells(board)
-
+        #full shared state for the whole game
         match_state = {
             "board": board,
             "rows": ROWS,
@@ -373,18 +374,17 @@ def main():
         match_lock = threading.Lock()
 
 
-        print("match made")
+        print("Match Created")
         print(f"Player 1: {match_state['players'][1]['username']}")
         print(f"Player 2: {match_state['players'][2]['username']}")    
         print(f"Board Size {match_state['rows']}X{match_state['cols']}")
         print(f"Mine Count: {match_state['mine_count']}")
         print(f"Safe Cells: {match_state['safe_cell_total']}")
-
+        #send both players the board size and mine layout so that the clients can initialize
         start_message = f"START {match_state['rows']} {match_state['cols']} {match_state['mine_count']}"
-        #info for players 
         send_line(match_state["players"][1]["socket"], start_message)
         send_line(match_state["players"][2]["socket"], start_message)
-
+        #start each client their own thread so they can play indepedently 
         thread1 = threading.Thread(
             target = handle_client, 
             args = (1, match_state, match_lock)
