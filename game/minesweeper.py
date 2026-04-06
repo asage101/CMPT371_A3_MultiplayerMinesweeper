@@ -183,7 +183,7 @@ def test_reveal_cell_safe():
     print("Safe revealed count:", player_state["safe_revealed_count"])
     print("Revealed cells:", player_state["revealed"])
 
-
+'''
 if __name__ == "__main__":
     test_reveal_cell_invalid()
     print()
@@ -195,3 +195,4 @@ if __name__ == "__main__":
     print()
 
     test_reveal_cell_safe()
+'''

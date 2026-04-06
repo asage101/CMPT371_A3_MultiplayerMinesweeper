@@ -63,16 +63,16 @@ def get_valid_move():
 
 #start the client, connect it to the server 
 def start_client():
-    print ("client start")
+    #print ("client start")
 
     #creating the TCP
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("client socket bam")  
+    #print("client socket bam")  
 
 
     try:
         client_socket.connect((HOST,PORT))
-        print(f"hots{HOST}, PORt {PORT}")
+        #print(f"hots{HOST}, PORt {PORT}")
         client_reader = client_socket.makefile("r")
         #player gives username
         while True:
@@ -84,7 +84,7 @@ def start_client():
         #JOIN
         join_message = f"JOIN {username}\n"
         client_socket.sendall(join_message.encode())
-        print(f"Sent: JOIN {username}")
+        #print(f"Sent: JOIN {username}")
 
         
         visible_board = None
@@ -131,7 +131,7 @@ def start_client():
 
                     reveal_message = f"REVEAL {row} {col}\n"
                     client_socket.sendall(reveal_message.encode())
-                    print(f"Sent: REVEAL {row} {col}")
+                    #print(f"Sent: REVEAL {row} {col}")
 
                     move_done = False
 
@@ -264,7 +264,7 @@ def start_client():
 
     finally:
         client_socket.close()
-        print("client done")
+        #print("client done")
 
 
 if __name__ == "__main__":

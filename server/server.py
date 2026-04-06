@@ -38,20 +38,6 @@ def finalize_match(match_state, winner, final_reason):
     match_state["winner"] = winner
     match_state["final_reason"] = final_reason
 
-
-def parse_command(client_socket):
-    #divide line into command,args
-    line = recv_line(client_socket)
-
-    if line =="":
-        return "", []
-
-    parts = line.split()
-    command = parts[0]
-    args = parts[1:]
-
-    return command, args
-
 #if one player disconnects 
 def handle_disconnect(match_state, match_lock, disconnected_player_id):
     with match_lock:
@@ -90,7 +76,6 @@ def handle_client(player_id, match_state, match_lock):
     recv_buffer = ""
     print(f"Handler started for {username}")
     try:
-        #move from main
         while True:
             while "\n" not in recv_buffer:
                 try:
@@ -288,12 +273,12 @@ def main():
         #player 1
         print("Waiting for player1")
         player1_socket, player1_address = server_socket.accept()
-        print(f"player 1 is at this address{player1_address}")
+        #print(f"player 1 is at this address{player1_address}")
         
 
         send_line(player1_socket, "WAITING")
         player1_join = recv_line(player1_socket)
-        print(f"player 1 message{player1_join}")
+        #print(f"player 1 message{player1_join}")
 
         player1_parts = player1_join.split(maxsplit=1)
         if len(player1_parts) < 2 or player1_parts[0] != "JOIN" or player1_parts[1].strip() == "":
@@ -334,10 +319,10 @@ def main():
         finally:
             server_socket.settimeout(None)
 
-        print(f"Player 2 address {player2_address}")
+        #print(f"Player 2 address {player2_address}")
 
         player2_join = recv_line(player2_socket)
-        print(f"player 2 message{player2_join}")
+        #print(f"player 2 message{player2_join}")
 
         player2_parts = player2_join.split(maxsplit=1)
         if len(player2_parts) < 2 or player2_parts[0] != "JOIN" or player2_parts[1].strip() == "":
@@ -387,7 +372,7 @@ def main():
         }
         match_lock = threading.Lock()
 
-        #debugging please
+
         print("match made")
         print(f"Player 1: {match_state['players'][1]['username']}")
         print(f"Player 2: {match_state['players'][2]['username']}")    

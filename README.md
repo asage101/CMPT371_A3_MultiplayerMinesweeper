@@ -29,28 +29,33 @@ The game ends when:
 ---
 ## System Limitations & Edge Cases
 
-As required by the project specifications, the following limitations and edge cases were considered:
+While building this project, we had to deal with a few common networking issues and edge cases:
 
-### Handling Multiple Clients Concurrently
-- **Solution:** Python’s `threading` module is used. Each client is handled in a separate thread while sharing a locked match state.
-- **Limitation:** Thread-based design does not scale well for large numbers of clients. A production system would use async I/O or thread pools.
+### Handling Multiple Clients
+We used Python’s `threading` module so each client runs in its own thread. Both threads share the same game state, which is protected using a lock to avoid conflicts.
 
-### TCP Stream Buffering
-- **Solution:** TCP is a continuous stream, so messages may arrive combined or split. We solved this by using newline (`\n`) delimiters and buffering input until a full line is received.
+One limitation of this approach is that threads don’t scale very well if there were a lot of players. For a larger system, something like async I/O or a thread pool would be a better choice.
 
-### Input Validation & Robustness
-- **Solution:** The server validates all commands strictly:
-  - Invalid commands → `ERROR Invalid command`
-  - Out-of-bounds moves → `ERROR Invalid move`
-  - Duplicate reveals → `ERROR Cell already revealed`
-- **Limitation:** The client performs light validation, but the server remains the source of truth.
+### TCP Message Handling
+Since TCP is a stream-based protocol, messages don’t always arrive cleanly one at a time — they can be split up or combined together.
+
+To handle this, we used newline (`\n`) as a delimiter and buffered incoming data until we had a full message before processing it.
+
+### Input Validation
+The server is responsible for validating all inputs to keep the game consistent. It checks for:
+- invalid commands → `ERROR Invalid command`
+- out-of-bounds moves → `ERROR Invalid move`
+- revealing the same cell twice → `ERROR Cell already revealed`
+
+The client does some basic input checking, but the server is always treated as the source of truth.
 
 ### Disconnect Handling
-- If a player disconnects mid-game, the opponent automatically wins.
-- If a disconnect happens during waiting, the server cleans up without crashing.
+If a player disconnects during the game, the other player automatically wins.
+
+If a disconnect happens before the game starts (while waiting for a second player), the server handles it gracefully and shuts down the session without crashing.
 
 ### Join Timeout
-- If a second player does not connect within a fixed timeout, the first player is notified and the session closes.
+If a second player doesn’t connect within a set amount of time, the first player is notified and the session is closed.
 
 ---
 ## Video Demo
@@ -62,7 +67,7 @@ To run this project, you need:
 - Python 3.10 or higher
 - No external libraries required (uses standard libraries: `socket`, `threading`, `sys`, `os`)
 
-Optional:
+Run in:
 - VS Code or any terminal
 
 ---
