@@ -83,7 +83,7 @@ Run in:
 
 ## Step-by-Step Run Guide
 
-> **Important:** The grader should be able to copy-paste these commands.
+> **Important:** These commands can be copy and pasted directly 
 
 ### Step 1: Start the Server
 
