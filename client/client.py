@@ -1,13 +1,16 @@
+#This file implements the terminal client 
+#handles connections to the server, sends player names, and shares responses from the server
 import socket
 import sys
 import os 
+#added to allow imports from config.py
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import HOST, PORT
 
 
 #Initial Board
 #all values hidden
-def create_visible_board(rows,cols):
+def create_visible_board(rows, cols):
     return[["." for _ in range(cols)] for _ in range(rows)]
 
 #make the initial board pretty
@@ -21,12 +24,12 @@ def print_visible_board(board):
         row_string = " ".join(str(cell) for cell in board[row_index])
         print(f"{row_index} {row_string}")
 
-#create the actual game
+#Displays the client side view of the game (and progress and board state)
 def render_game_view(visible_board, your_progress, opponent_progress, last_result_message):
     if last_result_message:
         print(last_result_message)
     print(f"Your progress: {your_progress} safe cells")
-    print(f"Opponent progress:{opponent_progress} safe cells")
+    print(f"Opponent progress: {opponent_progress} safe cells")
     print()
 
     if visible_board is not None:
@@ -63,16 +66,15 @@ def get_valid_move():
 
 #start the client, connect it to the server 
 def start_client():
-    #print ("client start")
+
 
     #creating the TCP
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #print("client socket bam")  
+
 
 
     try:
         client_socket.connect((HOST,PORT))
-        #print(f"hots{HOST}, PORt {PORT}")
         client_reader = client_socket.makefile("r")
         #player gives username
         while True:
@@ -84,9 +86,9 @@ def start_client():
         #JOIN
         join_message = f"JOIN {username}\n"
         client_socket.sendall(join_message.encode())
-        #print(f"Sent: JOIN {username}")
 
-        
+
+        #used to display the board and track progress
         visible_board = None
         game_started = False
         game_over = False
@@ -99,21 +101,22 @@ def start_client():
         #communicate with the server
         while not game_over:
             line = client_reader.readline()
-            #data = client_socket.recv(1024)
+
             data = line
             if not data:
                 print("server disconnected")
                 game_over = True
                 break
-            #message = data.decode().strip()
+
             message = data.strip()
+            #START means that both players are connected and match can start
             if message.startswith("START"):
                 parts = message.split()
 
                 rows = int(parts[1])
                 cols = int(parts[2])
                 mine_count = int(parts[3])
-
+                #the client only stores what this player has revelaed, not the hidden layout
                 visible_board = create_visible_board(rows,cols)
                 game_started = True
                 waiting_for_move = False
@@ -128,13 +131,12 @@ def start_client():
                 )
                 while not game_over:
                     row, col = get_valid_move()
-
+                    #send the player's move to the server to be checked for validity
                     reveal_message = f"REVEAL {row} {col}\n"
                     client_socket.sendall(reveal_message.encode())
-                    #print(f"Sent: REVEAL {row} {col}")
 
                     move_done = False
-
+                    #after sending a move keep the server response unil the move has been processed or game ends
                     while not move_done and not game_over:
                         line = client_reader.readline()
 
@@ -144,7 +146,7 @@ def start_client():
                             return
 
                         response = line.strip()
-
+                        #The server confirms this move is safe--> update board 
                         if response.startswith("RESULT SAFE"):
                             parts = response.split()
 
@@ -168,7 +170,7 @@ def start_client():
 
 
                             move_done = True
-
+                        #server says mine was hit --> mark as hit on th visible board
                         elif response.startswith("RESULT MINE"):
                             parts = response.split()
 
@@ -189,9 +191,9 @@ def start_client():
                                 last_result_message
                             )
 
-                            #move_done = True
-                            #game_over = True
 
+
+                            
                         elif response.startswith("ERROR"):
                             last_result_message = response
                             render_game_view(
@@ -201,7 +203,7 @@ def start_client():
                                 last_result_message
                             )
                             move_done = True
-
+                        #updates are sent seperately therefore progress you and progress opponent, to track them independently 
                         elif response.startswith("PROGRESS YOU"):
                             parts = response.split()
                             #count = parts[2]
@@ -225,7 +227,7 @@ def start_client():
                                 opponent_progress, 
                                 last_result_message
                             )
-                        
+                        #status updates from the server (win, loss, disconnected)
                         elif response.startswith("MESSAGE "):
                             text = response[len("MESSAGE "):]
                             last_result_message = text
@@ -260,7 +262,8 @@ def start_client():
                         
                 break
             else:
-                print(f"Recieved:{message}")
+                #deals with pre game messages like WAITING
+                print(f"Recieved: {message}")
 
     finally:
         client_socket.close()
