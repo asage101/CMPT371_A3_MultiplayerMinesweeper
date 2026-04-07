@@ -69,7 +69,7 @@ If a second player doesn’t connect within a set amount of time, the first play
 ---
 ## Video Demo
 Watch the demo here: 
-https://youtu.be/ZPCNpqlk1Kc
+https://youtu.be/4nw_ZN3QFEE
 ---
 ## Prerequisites (Fresh Environment)
 
