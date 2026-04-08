@@ -217,9 +217,10 @@ CMPT371_A3_MinesweeperRace/
 ## Academic Integrity & References
 **Code Origin**
 - Code implementation was written by the group 
-- Basic socke structure was inspired by course materials 
+- Basic socket structure was inspired by course materials 
 
 **GenAI Usage**
 - ChatGPT was used to debug socket behavior, structuring message protocol, and improving README clarity
 
 **References**
+- Course materials and course provided sample repo 
