@@ -1,18 +1,4 @@
-# CMPT 371 A3 Socket Programming ``` Minesweeper Race ```
-**Course:** CMPT 371 - Data Communications & Networking
-
-**Instructor:** Mirza Zaeem Baig
-
-**Semester:** Spring 2026
-
-***RUBRIC NOTE: As per submission guidelines, only one group member will submit the link to this repository on Canvas.*** 
-
----
-## Group Members
-| Name | Student ID | Email |
-|------|-----------|------|
-| Alina Pharis | 301551508  | asp29@sfu.ca |
-| Tushar Singh | 301560473 | tsa156@sfu.ca |
+# Socket Programming ``` Minesweeper Race ```
 
 ---
 ## Project Overview
@@ -34,11 +20,11 @@ The project uses a `config.py` file to store all key settings, including:
 - Game settings (`ROWS`, `COLS`, `MINE_COUNT`)
 - Join timeout (`JOIN_TIMEOUT`)
 
-These values are imported by both the server and client, allowing the game setup to be easily modified without changing the main code. The default values are used for testing and grading.
+These values are imported by both the server and client, allowing the game setup to be easily modified without changing the main code.
 ---
 ## System Limitations & Edge Cases
 
-While building this project, we had to deal with a few common networking issues and edge cases:
+While building this project, I had to deal with a few common networking issues and edge cases:
 
 ### Handling Multiple Clients
 We used Python’s `threading` module so each client runs in its own thread. Both threads share the same game state, which is protected using a lock to avoid conflicts.
@@ -66,10 +52,6 @@ If a disconnect happens before the game starts (while waiting for a second playe
 ### Join Timeout
 If a second player doesn’t connect within a set amount of time, the first player is notified and the session is closed.
 
----
-## Video Demo
-Watch the demo here: 
-https://youtu.be/fdSPRiNqEoM 
 ---
 ## Prerequisites (Fresh Environment)
 
@@ -216,11 +198,9 @@ CMPT371_A3_MinesweeperRace/
 
 ## Academic Integrity & References
 **Code Origin**
-- Code implementation was written by the group 
-- Basic socket structure was inspired by course materials 
+- Code implementation was written by Alina Pharis
 
 **GenAI Usage**
 - ChatGPT was used to debug socket behavior, structuring message protocol, and improving README clarity
 
-**References**
-- Course materials and course provided sample repo 
+
